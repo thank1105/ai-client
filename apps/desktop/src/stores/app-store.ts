@@ -1,13 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type Theme = 'dark' | 'light'
+export type Theme = 'default' | 'sakura' | 'mint' | 'sunset'
 export type View = 'chat' | 'image' | 'settings'
 
 interface AppState {
   theme: Theme
   setTheme: (theme: Theme) => void
-  toggleTheme: () => void
+  cycleTheme: () => void
 
   view: View
   setView: (view: View) => void
@@ -22,9 +22,14 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
-      theme: 'light',
+      theme: 'default',
       setTheme: (theme) => set({ theme }),
-      toggleTheme: () => set({ theme: get().theme === 'dark' ? 'light' : 'dark' }),
+      cycleTheme: () =>
+        set((s): Partial<AppState> => {
+          const order: Theme[] = ['default', 'sakura', 'mint', 'sunset']
+          const i = order.indexOf(s.theme)
+          return { theme: order[(i + 1) % order.length] }
+        }),
 
       view: 'chat',
       setView: (view) => set({ view }),

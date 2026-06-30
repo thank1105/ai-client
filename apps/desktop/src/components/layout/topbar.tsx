@@ -1,10 +1,10 @@
-import { motion } from 'framer-motion'
-import { Search, Sun, Moon, Command } from 'lucide-react'
+﻿import { motion } from 'framer-motion'
+import { Search, Palette, Command } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/stores/app-store'
 
 export function Topbar() {
-  const { theme, toggleTheme } = useAppStore()
+  const { cycleTheme } = useAppStore()
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-background/40 px-6 backdrop-blur-xl">
@@ -23,14 +23,11 @@ export function Topbar() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={toggleTheme}
+            onClick={cycleTheme}
             className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            aria-label="切换主题"
           >
-            {theme === 'dark' ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
+            <Palette className="h-4 w-4" />
           </Button>
         </motion.div>
       </div>

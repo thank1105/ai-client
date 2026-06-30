@@ -7,7 +7,7 @@ export function useThemeSync() {
 
   useEffect(() => {
     const root = document.documentElement
-    root.classList.remove('light', 'dark')
+    root.classList.remove('default', 'sakura', 'mint', 'sunset', 'light', 'dark')
     root.classList.add(theme)
   }, [theme])
 }

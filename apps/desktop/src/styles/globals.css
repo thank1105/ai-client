@@ -1,31 +1,31 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  /* 浅色主题 - 默认（Aesop/无印良品 × 苹果官网 风格） */
+  /* 娴呰壊涓婚 - 榛樿锛圓esop/鏃犲嵃鑹搧 脳 鑻规灉瀹樼綉 椋庢牸锛?*/
   :root,
   .light {
-    --background: 35 25% 90%;          /* 米色 #E8E2D3 */
-    --foreground: 25 15% 16%;          /* 深棕黑 #2A2520 */
-    --card: 35 30% 95%;                /* 略浅米色 #F2EDE3 */
+    --background: 35 25% 90%;          /* 绫宠壊 #E8E2D3 */
+    --foreground: 25 15% 16%;          /* 娣辨榛?#2A2520 */
+    --card: 35 30% 95%;                /* 鐣ユ祬绫宠壊 #F2EDE3 */
     --card-foreground: 25 15% 16%;
     --popover: 35 30% 97%;
     --popover-foreground: 25 15% 16%;
-    --primary: 25 30% 18%;             /* 深棕主按钮 #34291E */
+    --primary: 25 30% 18%;             /* 娣辨涓绘寜閽?#34291E */
     --primary-foreground: 35 30% 95%;
-    --secondary: 35 20% 86%;           /* 浅米灰 #DDD6C8 */
+    --secondary: 35 20% 86%;           /* 娴呯背鐏?#DDD6C8 */
     --secondary-foreground: 25 15% 16%;
     --muted: 35 20% 88%;
-    --muted-foreground: 25 10% 45%;    /* 灰棕 #80766A */
-    --accent: 25 50% 70%;              /* 暖橙 #D9A87E */
+    --muted-foreground: 25 10% 45%;    /* 鐏版 #80766A */
+    --accent: 25 50% 70%;              /* 鏆栨 #D9A87E */
     --accent-foreground: 25 15% 16%;
     --destructive: 5 65% 55%;
     --destructive-foreground: 35 30% 95%;
-    --border: 30 18% 80%;              /* 米色边框 #CFC6B5 */
+    --border: 30 18% 80%;              /* 绫宠壊杈规 #CFC6B5 */
     --input: 30 18% 82%;
     --ring: 25 30% 30%;
-    --radius: 0.5rem;                  /* 稍微方一点，更高级 */
+    --radius: 0.5rem;                  /* 绋嶅井鏂逛竴鐐癸紝鏇撮珮绾?*/
 
     --sidebar: 35 25% 92%;
     --sidebar-foreground: 25 15% 16%;
@@ -33,13 +33,44 @@
     --sidebar-accent-foreground: 25 15% 16%;
     --sidebar-border: 30 18% 82%;
 
-    /* 装饰色：右上角冷色辉光 */
-    --glow-cool: 95 25% 75%;           /* 极淡薄荷 */
-    /* 装饰色：左/右上暖色光晕 */
-    --glow-warm: 22 70% 78%;           /* 暖橙粉 */
+    /* 瑁呴グ鑹诧細鍙充笂瑙掑喎鑹茶緣鍏?*/
+    --glow-cool: 95 25% 75%;           /* 鏋佹贰钖勮嵎 */
+    /* 瑁呴グ鑹诧細宸?鍙充笂鏆栬壊鍏夋檿 */
+    --glow-warm: 22 70% 78%;           /* 鏆栨绮?*/
   }
 
-  /* 深色主题保留备用（更柔和的暗夜米色） */
+  /* 娣辫壊涓婚淇濈暀澶囩敤锛堟洿鏌斿拰鐨勬殫澶滅背鑹诧級 */
+  
+  /* 主题：樱粉（Sakura） */
+  .sakura {
+    --primary: 340 70% 60%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 340 80% 70%;
+    --ring: 340 70% 55%;
+    --glow-warm: 340 75% 78%;
+    --glow-cool: 320 40% 80%;
+  }
+
+  /* 主题：薄荷（Mint） */
+  .mint {
+    --primary: 160 55% 42%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 165 60% 55%;
+    --ring: 160 55% 42%;
+    --glow-warm: 150 55% 80%;
+    --glow-cool: 180 45% 75%;
+  }
+
+  /* 主题：日落（Sunset） */
+  .sunset {
+    --primary: 18 85% 56%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 22 90% 65%;
+    --ring: 18 85% 56%;
+    --glow-warm: 18 85% 80%;
+    --glow-cool: 30 60% 80%;
+  }
+
   .dark {
     --background: 25 12% 10%;
     --foreground: 35 20% 90%;
@@ -91,7 +122,7 @@
     font-family: var(--font-sans);
   }
 
-  /* 滚动条 */
+  /* 婊氬姩鏉?*/
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -106,7 +137,7 @@
     @apply bg-foreground/20;
   }
 
-  /* 选区 */
+  /* 閫夊尯 */
   ::selection {
     background: hsl(var(--accent) / 0.4);
     color: hsl(var(--foreground));
@@ -114,14 +145,14 @@
 }
 
 @layer utilities {
-  /* 衬线大字标题 */
+  /* 琛嚎澶у瓧鏍囬 */
   .font-serif-display {
     font-family: var(--font-serif);
     font-feature-settings: 'ss01' 1, 'liga' 1;
     letter-spacing: -0.02em;
   }
 
-  /* 全大写小标 + 大字距 */
+  /* 鍏ㄥぇ鍐欏皬鏍?+ 澶у瓧璺?*/
   .eyebrow {
     text-transform: uppercase;
     letter-spacing: 0.3em;
@@ -130,7 +161,7 @@
     color: hsl(var(--muted-foreground));
   }
 
-  /* 玻璃拟态（米色版） */
+  /* 鐜荤拑鎷熸€侊紙绫宠壊鐗堬級 */
   .glass {
     @apply bg-background/60 backdrop-blur-xl backdrop-saturate-150;
     border: 1px solid hsl(var(--border) / 0.7);
@@ -141,7 +172,7 @@
     border: 1px solid hsl(var(--border));
   }
 
-  /* 杂志感卡片：暖橙光晕 + 浅边框 */
+  /* 鏉傚織鎰熷崱鐗囷細鏆栨鍏夋檿 + 娴呰竟妗?*/
   .editorial {
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
@@ -150,7 +181,7 @@
       0 12px 32px -16px hsl(var(--foreground) / 0.08);
   }
 
-  /* 暖色光晕背景（图片左上的橙粉光） */
+  /* 鏆栬壊鍏夋檿鑳屾櫙锛堝浘鐗囧乏涓婄殑姗欑矇鍏夛級 */
   .glow-warm {
     background: radial-gradient(
       ellipse 50% 60% at 15% 20%,
@@ -159,7 +190,7 @@
     );
   }
 
-  /* 冷色光晕（图片右上的薄荷绿） */
+  /* 鍐疯壊鍏夋檿锛堝浘鐗囧彸涓婄殑钖勮嵎缁匡級 */
   .glow-cool {
     background: radial-gradient(
       ellipse 40% 50% at 90% 0%,
@@ -168,7 +199,7 @@
     );
   }
 
-  /* 暖色光点（呼应图片中的小光斑） */
+  /* 鏆栬壊鍏夌偣锛堝懠搴斿浘鐗囦腑鐨勫皬鍏夋枒锛?*/
   .glow-spot {
     background: radial-gradient(
       circle at 50% 50%,
@@ -177,13 +208,13 @@
     );
   }
 
-  /* 细线分隔 */
+  /* 缁嗙嚎鍒嗛殧 */
   .hairline {
     border-color: hsl(var(--border));
   }
 
 
-  /* 浅噪点 */
+  /* 娴呭櫔鐐?*/
   .bg-noise {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.15 0 0 0 0 0.12 0 0 0 0 0.10 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
