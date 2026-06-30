@@ -1,0 +1,190 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* 浅色主题 - 默认（Aesop/无印良品 × 苹果官网 风格） */
+  :root,
+  .light {
+    --background: 35 25% 90%;          /* 米色 #E8E2D3 */
+    --foreground: 25 15% 16%;          /* 深棕黑 #2A2520 */
+    --card: 35 30% 95%;                /* 略浅米色 #F2EDE3 */
+    --card-foreground: 25 15% 16%;
+    --popover: 35 30% 97%;
+    --popover-foreground: 25 15% 16%;
+    --primary: 25 30% 18%;             /* 深棕主按钮 #34291E */
+    --primary-foreground: 35 30% 95%;
+    --secondary: 35 20% 86%;           /* 浅米灰 #DDD6C8 */
+    --secondary-foreground: 25 15% 16%;
+    --muted: 35 20% 88%;
+    --muted-foreground: 25 10% 45%;    /* 灰棕 #80766A */
+    --accent: 25 50% 70%;              /* 暖橙 #D9A87E */
+    --accent-foreground: 25 15% 16%;
+    --destructive: 5 65% 55%;
+    --destructive-foreground: 35 30% 95%;
+    --border: 30 18% 80%;              /* 米色边框 #CFC6B5 */
+    --input: 30 18% 82%;
+    --ring: 25 30% 30%;
+    --radius: 0.5rem;                  /* 稍微方一点，更高级 */
+
+    --sidebar: 35 25% 92%;
+    --sidebar-foreground: 25 15% 16%;
+    --sidebar-accent: 35 22% 86%;
+    --sidebar-accent-foreground: 25 15% 16%;
+    --sidebar-border: 30 18% 82%;
+
+    /* 装饰色：右上角冷色辉光 */
+    --glow-cool: 95 25% 75%;           /* 极淡薄荷 */
+    /* 装饰色：左/右上暖色光晕 */
+    --glow-warm: 22 70% 78%;           /* 暖橙粉 */
+  }
+
+  /* 深色主题保留备用（更柔和的暗夜米色） */
+  .dark {
+    --background: 25 12% 10%;
+    --foreground: 35 20% 90%;
+    --card: 25 12% 13%;
+    --card-foreground: 35 20% 90%;
+    --popover: 25 12% 13%;
+    --popover-foreground: 35 20% 90%;
+    --primary: 35 25% 90%;
+    --primary-foreground: 25 12% 10%;
+    --secondary: 25 10% 18%;
+    --secondary-foreground: 35 20% 90%;
+    --muted: 25 10% 18%;
+    --muted-foreground: 25 8% 60%;
+    --accent: 22 50% 60%;
+    --accent-foreground: 25 12% 10%;
+    --destructive: 5 60% 50%;
+    --destructive-foreground: 35 20% 90%;
+    --border: 25 8% 22%;
+    --input: 25 8% 22%;
+    --ring: 35 25% 90%;
+
+    --sidebar: 25 12% 8%;
+    --sidebar-foreground: 35 20% 90%;
+    --sidebar-accent: 25 10% 15%;
+    --sidebar-accent-foreground: 35 20% 90%;
+    --sidebar-border: 25 8% 18%;
+
+    --glow-cool: 95 20% 30%;
+    --glow-warm: 22 50% 30%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body,
+  #root {
+    @apply h-full;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'rlig' 1, 'calt' 1, 'ss01' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: var(--font-sans);
+  }
+
+  /* 滚动条 */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-foreground/10 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-foreground/20;
+  }
+
+  /* 选区 */
+  ::selection {
+    background: hsl(var(--accent) / 0.4);
+    color: hsl(var(--foreground));
+  }
+}
+
+@layer utilities {
+  /* 衬线大字标题 */
+  .font-serif-display {
+    font-family: var(--font-serif);
+    font-feature-settings: 'ss01' 1, 'liga' 1;
+    letter-spacing: -0.02em;
+  }
+
+  /* 全大写小标 + 大字距 */
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* 玻璃拟态（米色版） */
+  .glass {
+    @apply bg-background/60 backdrop-blur-xl backdrop-saturate-150;
+    border: 1px solid hsl(var(--border) / 0.7);
+  }
+
+  .glass-strong {
+    @apply bg-background/80 backdrop-blur-2xl backdrop-saturate-150;
+    border: 1px solid hsl(var(--border));
+  }
+
+  /* 杂志感卡片：暖橙光晕 + 浅边框 */
+  .editorial {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    box-shadow:
+      0 1px 2px hsl(var(--foreground) / 0.03),
+      0 12px 32px -16px hsl(var(--foreground) / 0.08);
+  }
+
+  /* 暖色光晕背景（图片左上的橙粉光） */
+  .glow-warm {
+    background: radial-gradient(
+      ellipse 50% 60% at 15% 20%,
+      hsl(var(--glow-warm) / 0.55) 0%,
+      transparent 60%
+    );
+  }
+
+  /* 冷色光晕（图片右上的薄荷绿） */
+  .glow-cool {
+    background: radial-gradient(
+      ellipse 40% 50% at 90% 0%,
+      hsl(var(--glow-cool) / 0.35) 0%,
+      transparent 65%
+    );
+  }
+
+  /* 暖色光点（呼应图片中的小光斑） */
+  .glow-spot {
+    background: radial-gradient(
+      circle at 50% 50%,
+      hsl(var(--accent) / 0.4) 0%,
+      transparent 70%
+    );
+  }
+
+  /* 细线分隔 */
+  .hairline {
+    border-color: hsl(var(--border));
+  }
+
+
+  /* 浅噪点 */
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.15 0 0 0 0 0.12 0 0 0 0 0.10 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}

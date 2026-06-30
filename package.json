@@ -1,0 +1,6 @@
+﻿{
+  "name": "ai-client-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.9.0"
+}

@@ -1,0 +1,198 @@
+import { motion } from 'framer-motion'
+import { KeyRound, Palette, Database, Info } from 'lucide-react'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { useAppStore } from '@/stores/app-store'
+
+export function SettingsView() {
+  const { theme, setTheme } = useAppStore()
+
+  return (
+    <div className="relative h-full overflow-y-auto">
+      <div className="pointer-events-none absolute inset-0 glow-cool opacity-50" />
+      <div className="pointer-events-none absolute inset-0 bg-noise opacity-30" />
+
+      <div className="relative mx-auto max-w-2xl p-10">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="eyebrow mb-3">Preferences</div>
+          <h1 className="font-serif-display text-3xl font-light tracking-tightest">
+            设置
+          </h1>
+          <p className="mt-2 text-[13px] text-muted-foreground">
+            个性化你的 AI 客户端
+          </p>
+        </motion.div>
+
+        <div className="mt-10 space-y-6">
+          {/* API Key */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <SectionHeader
+              icon={<KeyRound className="h-3.5 w-3.5" />}
+              title="API 密钥"
+              desc="密钥安全存储在系统密钥环中，不会明文保存到磁盘"
+            />
+            <Card className="mt-3">
+              <CardContent className="space-y-3 p-5">
+                {['OpenAI', 'Anthropic', 'Stability AI'].map((provider) => (
+                  <div key={provider} className="flex items-center gap-2">
+                    <span className="w-28 text-[12.5px] text-muted-foreground">
+                      {provider}
+                    </span>
+                    <Input
+                      type="password"
+                      placeholder="sk-..."
+                      className="flex-1"
+                      disabled
+                    />
+                    <Button variant="outline" size="sm" disabled>
+                      保存
+                    </Button>
+                  </div>
+                ))}
+                <p className="pt-2 text-[11px] text-muted-foreground/70">
+                  ⏳ 第二阶段启用：需先接入 Tauri 桌面端 + 系统密钥环
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* 外观 */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <SectionHeader
+              icon={<Palette className="h-3.5 w-3.5" />}
+              title="外观"
+              desc="主题与显示偏好"
+            />
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {(['light', 'dark'] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTheme(t)}
+                  className={`relative overflow-hidden rounded-lg border p-3 text-left transition-all ${
+                    theme === t
+                      ? 'border-foreground/40 shadow-sm'
+                      : 'border-border hover:border-foreground/20'
+                  }`}
+                >
+                  <div
+                    className={`mb-2 h-16 rounded border ${
+                      t === 'light'
+                        ? 'border-[#D8CFB8] bg-gradient-to-br from-[#F0E9D8] to-[#E8E2D3]'
+                        : 'border-zinc-800 bg-gradient-to-br from-zinc-900 to-zinc-950'
+                    }`}
+                  />
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12.5px] font-medium">
+                      {t === 'light' ? '☀️ 浅色' : '🌙 深色'}
+                    </span>
+                    {theme === t && (
+                      <span className="text-[10px] uppercase tracking-eyebrow text-muted-foreground">
+                        Current
+                      </span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* 数据 */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <SectionHeader
+              icon={<Database className="h-3.5 w-3.5" />}
+              title="数据"
+              desc="本地存储与会话管理"
+            />
+            <Card className="mt-3">
+              <CardContent className="space-y-2 p-5 text-[12.5px]">
+                <Row label="数据目录">
+                  <code className="rounded bg-muted px-1.5 py-0.5 text-[10.5px]">
+                    ~/AppData/Roaming/AI-Client
+                  </code>
+                </Row>
+                <Row label="数据库">
+                  <span className="text-muted-foreground/70">即将接入 SQLite</span>
+                </Row>
+                <Row label="图片存储">
+                  <span className="text-muted-foreground/70">即将接入本地文件系统</span>
+                </Row>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* 关于 */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <SectionHeader
+              icon={<Info className="h-3.5 w-3.5" />}
+              title="关于"
+            />
+            <Card className="mt-3">
+              <CardContent className="space-y-1 p-5 text-[12.5px] text-muted-foreground">
+                <div>AI Client · v0.1.0</div>
+                <div>第一阶段：骨架 · 主题 · 布局</div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SectionHeader({
+  icon,
+  title,
+  desc,
+}: {
+  icon: React.ReactNode
+  title: string
+  desc?: string
+}) {
+  return (
+    <div className="flex items-start gap-3 px-1">
+      <div className="mt-0.5 text-muted-foreground">{icon}</div>
+      <div className="flex-1">
+        <div className="text-[13px] font-medium">{title}</div>
+        {desc && (
+          <div className="mt-0.5 text-[11.5px] text-muted-foreground">{desc}</div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between rounded-md border border-border/60 bg-background/30 px-3 py-2">
+      <span className="text-muted-foreground">{label}</span>
+      {children}
+    </div>
+  )
+}
