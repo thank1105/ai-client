@@ -18,40 +18,42 @@ export function ChatView() {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           className="w-full max-w-2xl"
         >
-          {/* Eyebrow */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="eyebrow mb-6"
-          >
-            IMAGE · TEXT · MARKETING
-          </motion.div>
+{/* 杂志式 Hero: 上方英文横向水印 / 下方中文主标题，两层互不重叠 */}
+          <div>
+            {/* 英文横向水印层：单行铺开，不占纵向 */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              aria-hidden
+              className="pointer-events-none select-none font-serif-display text-[56px] font-light italic leading-none tracking-[-0.03em] text-foreground/[0.08] flex flex-wrap items-baseline gap-x-6"
+            >
+              <span>Chat.</span>
+              <span>Image.</span>
+              <span>Assistant.</span>
+            </motion.div>
 
-          {/* 衬线大字标题 */}
-          <motion.h1
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.7 }}
-            className="font-serif-display text-[44px] font-light leading-[1.15] tracking-tightest text-foreground"
-          >
-            让 AI 先
-            <span className="italic">理解</span>
-            你，
-            <br />
-            再替你
-            <span className="italic">表达</span>
-            。
-          </motion.h1>
+            {/* 中文主标题：与英文之间留出 mb-12 呼吸距离 */}
+            <motion.h1
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-12 font-serif-display text-[44px] font-light leading-[1.15] tracking-tightest text-foreground"
+            >
+              为你
+              <span className="italic">创作、绘画、分析</span>
+              <span className="text-primary">。</span>
+            </motion.h1>
+          </div>
 
           {/* 副文 */}
           <motion.p
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.6 }}
-            className="mt-5 max-w-md text-[13px] leading-relaxed text-muted-foreground"
+            className="mt-8 max-w-md text-[13px] leading-relaxed text-muted-foreground"
           >
-            通过历史内容沉淀长期营销画像，让生成结果更接近你的账号定位、表达习惯和成交方式。
+            一个桌面端的 AI 工作台，<br />聊天、绘画、文件与记忆，都在这里。
           </motion.p>
 
           {/* 快捷建议卡 */}
