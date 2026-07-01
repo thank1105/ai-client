@@ -29,9 +29,17 @@ desktop.ini
 npm-debug.log*
 pnpm-debug.log*
 
-# Tauri (future)
-src-tauri/target/
+# Tauri / Cargo — 编译产物，匹配任意子目录
+**/target/
 src-tauri/gen/
+
+# Rust
+**/*.rs.bk
+**/*.pdb
+
+# 大型临时 / 缓存
+**/*.tmp
+**/*.bak
 
 # Cache
 .cache/
