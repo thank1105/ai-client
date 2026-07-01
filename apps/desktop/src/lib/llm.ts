@@ -1,4 +1,7 @@
-﻿﻿import type { Message } from '@/stores/conversation-store'
+﻿﻿﻿import type { Message } from '@/stores/conversation-store'
+
+/** 是否在 Tauri 环境中 */
+export const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
 
 /** API 配置（从 app-store 拿） */
 export interface LLMConfig {
@@ -102,11 +105,6 @@ export async function streamChat(
 ): Promise<void> {
   const { system, messages: anthropicMsgs } = toAnthropicMessages(messages)
 
-  // 智能转换 baseURL：
-  // - Web 环境（vite dev 走 /llm 代理，避开 CORS）：https://x.com/anthropic -> /llm/anthropic
-  // - Tauri 环境（直连）：保持完整 URL
-  const url = resolveApiUrl(config.baseURL)
-
   const body: AnthropicRequest = {
     model: config.model,
     max_tokens: 4096,
@@ -114,7 +112,54 @@ export async function streamChat(
     stream: true,
   }
   if (system) body.system = system
+  const bodyStr = JSON.stringify(body)
 
+  // 根据环境选择调用方式
+  if (isTauri) {
+    return streamChatViaTauri(config, bodyStr, cb, signal)
+  }
+  return streamChatViaWeb(config, bodyStr, cb, signal)
+}
+
+/** Tauri 环境：调 Rust 端 llm_proxy 命令；Rust 当前返回非流式，权当一次性 */
+async function streamChatViaTauri(
+  config: LLMConfig,
+  bodyStr: string,
+  cb: StreamCallbacks,
+  _signal?: AbortSignal,
+): Promise<void> {
+  try {
+    const { invoke } = await import('@tauri-apps/api/core')
+    const trimmedBase = config.baseURL.replace(/\/+$/, '')
+    const path = trimmedBase.endsWith('/v1') ? '/messages' : '/v1/messages'
+    const resp = (await invoke('llm_proxy', {
+      req: {
+        base_url: trimmedBase,
+        path,
+        body: bodyStr,
+        extra_headers: {
+          'x-api-key': config.apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+      },
+    })) as string
+    // Rust 端当前是同步返回（不是流式），一次性输出
+    cb.onDelta(resp)
+    cb.onDone()
+  } catch (e) {
+    if ((e as Error)?.name === 'AbortError') cb.onDone()
+    else cb.onError(e instanceof Error ? e : new Error(String(e)))
+  }
+}
+
+/** Web 环境：fetch + SSE 解析 */
+async function streamChatViaWeb(
+  config: LLMConfig,
+  bodyStr: string,
+  cb: StreamCallbacks,
+  signal?: AbortSignal,
+): Promise<void> {
+  const url = resolveApiUrl(config.baseURL)
   let response: Response
   try {
     response = await fetch(url, {
@@ -125,7 +170,7 @@ export async function streamChat(
         'anthropic-version': '2023-06-01',
         Accept: 'text/event-stream',
       },
-      body: JSON.stringify(body),
+      body: bodyStr,
       signal,
     })
   } catch (e) {
