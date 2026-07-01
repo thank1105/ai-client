@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand'
+﻿﻿import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 export type MessageRole = 'user' | 'assistant' | 'system'
@@ -37,6 +37,8 @@ interface ConversationState {
   appendMessage: (convId: string, msg: Omit<Message, 'id' | 'createdAt'>) => string
   updateMessage: (convId: string, msgId: string, patch: Partial<Message>) => void
   deleteMessage: (convId: string, msgId: string) => void
+  /** 追加一段文本到指定消息末尾（用于流式输出） */
+  appendToMessage: (convId: string, msgId: string, delta: string) => void
 }
 
 const generateId = () =>
@@ -130,6 +132,21 @@ export const useConversationStore = create<ConversationState>()(
           conversations: get().conversations.map((c) =>
             c.id === convId
               ? { ...c, messages: c.messages.filter((m) => m.id !== msgId) }
+              : c,
+          ),
+        }),
+
+      appendToMessage: (convId, msgId, delta) =>
+        set({
+          conversations: get().conversations.map((c) =>
+            c.id === convId
+              ? {
+                  ...c,
+                  messages: c.messages.map((m) =>
+                    m.id === msgId ? { ...m, content: m.content + delta } : m,
+                  ),
+                  updatedAt: Date.now(),
+                }
               : c,
           ),
         }),

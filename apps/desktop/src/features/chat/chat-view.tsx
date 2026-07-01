@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { useConversationStore, type Message } from '@/stores/conversation-store'
+import { useAppStore } from '@/stores/app-store'
+import { streamChat } from '@/lib/llm'
 
 export function ChatView() {
   const conversations = useConversationStore((s) => s.conversations)
@@ -12,9 +14,11 @@ export function ChatView() {
   const createConversation = useConversationStore((s) => s.createConversation)
   const appendMessage = useConversationStore((s) => s.appendMessage)
   const updateMessage = useConversationStore((s) => s.updateMessage)
+  const appendToMessage = useConversationStore((s) => s.appendToMessage)
 
   const active = conversations.find((c) => c.id === activeId) ?? null
   const hasMessages = (active?.messages.length ?? 0) > 0
+  const apiConfig = useAppStore((s) => s.apiConfig)
 
   return (
     <div className="relative h-full overflow-y-auto">
@@ -33,16 +37,16 @@ export function ChatView() {
           {hasMessages && active ? (
             <MessageList
               messages={active.messages}
-              onSend={(text) => sendMessage(text, active.id, appendMessage, updateMessage)}
+              onSend={(text) => sendMessage(text, active.id, apiConfig, active.messages, { appendMessage, updateMessage, appendToMessage })}
             />
           ) : (
             <EmptyHero
               onSend={(text) => {
                 if (!active) {
                   const id = createConversation('chat')
-                  sendMessage(text, id, appendMessage, updateMessage)
+                  sendMessage(text, id, apiConfig, [], { appendMessage, updateMessage, appendToMessage })
                 } else {
-                  sendMessage(text, active.id, appendMessage, updateMessage)
+                  sendMessage(text, active.id, apiConfig, active.messages, { appendMessage, updateMessage, appendToMessage })
                 }
               }}
             />
@@ -322,69 +326,59 @@ function Composer({ onSend }: { onSend: (text: string) => void }) {
 /* 发送逻辑 + 假回复（后续接 LLM 时只改这里）                       */
 
 /* ------------------------------------------------------------------ */
-
-function sendMessage(
-
+/* ------------------------------------------------------------------ */
+/* 发送逻辑：调 LLM + 流式更新                                       */
+/* ------------------------------------------------------------------ */
+async function sendMessage(
   text: string,
-
   convId: string,
-
-  appendMessage: (convId: string, msg: Omit<Message, 'id' | 'createdAt'>) => string,
-
-  updateMessage: (convId: string, msgId: string, patch: Partial<Message>) => void,
-
+  apiConfig: { apiKey: string; baseURL: string; model: string },
+  convSnapshot: Message[],
+  helpers: {
+    appendMessage: (convId: string, msg: Omit<Message, 'id' | 'createdAt'>) => string
+    updateMessage: (convId: string, msgId: string, patch: Partial<Message>) => void
+    appendToMessage: (convId: string, msgId: string, delta: string) => void
+  },
 ) {
-
   // 1) 用户消息
-
-  appendMessage(convId, { role: 'user', content: text })
-
+  helpers.appendMessage(convId, { role: 'user', content: text })
   // 2) 占位助手消息（pending）
-
-  const pendingId = appendMessage(convId, {
-
+  const pendingId = helpers.appendMessage(convId, {
     role: 'assistant',
-
     content: '',
-
     pending: true,
-
   })
 
-  // 3) 1.2s 后模拟假回复（接 LLM 时改这里即可）
-
-  setTimeout(() => {
-
-    updateMessage(convId, pendingId, {
-
+  // 3) 校验 API Key
+  if (!apiConfig.apiKey) {
+    helpers.updateMessage(convId, pendingId, {
       pending: false,
-
-      content: fakeReply(text),
-
+      content: '⚠️ 请先在「设置」里填写 API Key。',
     })
+    return
+  }
 
-  }, 1200)
+  // 4) 拼出最新消息列表（包含刚 append 的 user）
+  const messages: Message[] = [
+    ...convSnapshot,
+    { id: 'new-user', role: 'user', content: text, createdAt: Date.now() },
+  ]
 
-}
-
-
-
-function fakeReply(input: string): string {
-
-  const trimmed = input.trim()
-
-  return [
-
-    `收到：${trimmed}`,
-
-    '',
-
-    '这是占位回复，用于验证持久化与交互链路。',
-
-    '下一步我会接入真实的大模型 API。',
-
-  ].join('\n')
-
+  // 5) 调用 LLM 流式
+  await streamChat(apiConfig, messages, {
+    onDelta: (delta) => {
+      helpers.appendToMessage(convId, pendingId, delta)
+    },
+    onDone: () => {
+      helpers.updateMessage(convId, pendingId, { pending: false })
+    },
+    onError: (err) => {
+      helpers.updateMessage(convId, pendingId, {
+        pending: false,
+        content: `\n\n⚠️ **生成失败**：\n\n${err.message}`,
+      })
+    },
+  })
 }
 
 

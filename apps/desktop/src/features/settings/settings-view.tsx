@@ -1,12 +1,42 @@
-﻿import { motion } from 'framer-motion'
-import { KeyRound, Palette, Database, Info } from 'lucide-react'
+﻿import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { KeyRound, Palette, Database, Info, Eye, EyeOff, Check } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/stores/app-store'
 
 export function SettingsView() {
-  const { theme, setTheme } = useAppStore()
+  const { theme, setTheme, apiConfig, setApiConfig } = useAppStore()
+
+  // API 配置本地草稿（输入时实时更新，点击保存才写入 store）
+  const [apiKey, setApiKey] = useState(apiConfig.apiKey)
+  const [baseURL, setBaseURL] = useState(apiConfig.baseURL)
+  const [model, setModel] = useState(apiConfig.model)
+  const [showKey, setShowKey] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  // 当 store 改变时（如 HMR）同步本地草稿
+  useEffect(() => {
+    setApiKey(apiConfig.apiKey)
+    setBaseURL(apiConfig.baseURL)
+    setModel(apiConfig.model)
+  }, [apiConfig.apiKey, apiConfig.baseURL, apiConfig.model])
+
+  const handleSave = () => {
+    setApiConfig({
+      apiKey: apiKey.trim(),
+      baseURL: baseURL.trim(),
+      model: model.trim(),
+    })
+    setSaved(true)
+    setTimeout(() => setSaved(false), 1800)
+  }
+
+  const isDirty =
+    apiKey !== apiConfig.apiKey ||
+    baseURL !== apiConfig.baseURL ||
+    model !== apiConfig.model
 
   return (
     <div className="relative h-full overflow-y-auto">
@@ -29,7 +59,7 @@ export function SettingsView() {
         </motion.div>
 
         <div className="mt-10 space-y-6">
-          {/* API Key */}
+          {/* API 配置 */}
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -37,30 +67,76 @@ export function SettingsView() {
           >
             <SectionHeader
               icon={<KeyRound className="h-3.5 w-3.5" />}
-              title="API 密钥"
-              desc="密钥安全存储在系统钥匙环中，不会明文保存到磁盘"
+              title="API 配置"
+              desc="用于对话功能；保存后存储在本地"
             />
             <Card className="mt-3">
               <CardContent className="space-y-3 p-5">
-                {['OpenAI', 'Anthropic', 'Stability AI'].map((provider) => (
-                  <div key={provider} className="flex items-center gap-2">
-                    <span className="w-28 text-[12.5px] text-muted-foreground">
-                      {provider}
-                    </span>
-                    <Input
-                      type="password"
-                      placeholder="sk-..."
-                      className="flex-1"
-                      disabled
-                    />
-                    <Button variant="outline" size="sm" disabled>
-                      保存
-                    </Button>
+                <div className="space-y-1.5">
+                  <label className="text-[11.5px] text-muted-foreground">
+                    Base URL
+                  </label>
+                  <Input
+                    value={baseURL}
+                    onChange={(e) => setBaseURL(e.target.value)}
+                    placeholder="https://api.example.com/anthropic"
+                    className="font-mono text-[12px]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11.5px] text-muted-foreground">
+                    API Key
+                  </label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Input
+                        type={showKey ? 'text' : 'password'}
+                        value={apiKey}
+                        onChange={(e) => setApiKey(e.target.value)}
+                        placeholder="sk-..."
+                        className="flex-1 pr-9 font-mono text-[12px]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowKey((v) => !v)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
+                        title={showKey ? '隐藏' : '显示'}
+                      >
+                        {showKey ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      </button>
+                    </div>
                   </div>
-                ))}
-                <p className="pt-2 text-[11px] text-muted-foreground/70">
-                  ⏳ 第二阶段启用：需先接入 Tauri 桌面端 + 系统密钥环
-                </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11.5px] text-muted-foreground">
+                    模型名
+                  </label>
+                  <Input
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                    placeholder="MiniMax-M3"
+                    className="font-mono text-[12px]"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                  <p className="text-[11px] text-muted-foreground/70">
+                    当前协议：Anthropic Messages（兼容）
+                  </p>
+                  <Button
+                    onClick={handleSave}
+                    disabled={!isDirty}
+                    className="h-8 gap-1.5"
+                  >
+                    {saved ? (
+                      <><Check className="h-3.5 w-3.5" />已保存</>
+                    ) : (
+                      '保存配置'
+                    )}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
@@ -83,7 +159,7 @@ export function SettingsView() {
                   <button
                     key={t.id}
                     onClick={() => setTheme(t.id)}
-                    className={active ? "group relative overflow-hidden rounded-lg border border-foreground/40 p-2.5 text-left shadow-sm ring-1 ring-foreground/10 transition-all" : "group relative overflow-hidden rounded-lg border border-border p-2.5 text-left transition-all hover:border-foreground/20"}
+                    className={active ? 'group relative overflow-hidden rounded-lg border border-foreground/40 p-2.5 text-left shadow-sm ring-1 ring-foreground/10 transition-all' : 'group relative overflow-hidden rounded-lg border border-border p-2.5 text-left transition-all hover:border-foreground/20'}
                   >
                     <div
                       className="mb-2 h-16 rounded-md border"
@@ -100,7 +176,7 @@ export function SettingsView() {
                       {active && (
                         <span
                           className="h-2 w-2 rounded-full"
-                          style={{ background: "hsl(var(--primary))" }}
+                          style={{ background: 'hsl(var(--primary))' }}
                           aria-label="当前主题"
                         />
                       )}
@@ -130,7 +206,7 @@ export function SettingsView() {
                   </code>
                 </Row>
                 <Row label="数据库">
-                  <span className="text-muted-foreground/70">即将接入 SQLite</span>
+                  <span className="text-muted-foreground/70">localStorage（Web 阶段）</span>
                 </Row>
                 <Row label="图片存储">
                   <span className="text-muted-foreground/70">即将接入本地文件系统</span>
@@ -151,8 +227,8 @@ export function SettingsView() {
             />
             <Card className="mt-3">
               <CardContent className="space-y-1 p-5 text-[12.5px] text-muted-foreground">
-                <div>AI Client · v0.1.0</div>
-                <div>第一阶段：骨架 · 主题 · 布局</div>
+                <div>AI Client · v0.2.0</div>
+                <div>第二阶段：持久化 + LLM 流式对话</div>
               </CardContent>
             </Card>
           </motion.div>

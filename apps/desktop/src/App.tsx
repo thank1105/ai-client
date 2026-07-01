@@ -1,13 +1,15 @@
-import { AnimatePresence, motion } from 'framer-motion'
+﻿import { AnimatePresence, motion } from 'framer-motion'
 import { AppLayout } from '@/components/layout/app-layout'
 import { ChatView } from '@/features/chat/chat-view'
 import { ImageView } from '@/features/image/image-view'
 import { SettingsView } from '@/features/settings/settings-view'
 import { useAppStore } from '@/stores/app-store'
 import { useThemeSync } from '@/lib/use-theme'
+import { useApiMigrate } from '@/lib/use-api-migrate'
 
 export default function App() {
   useThemeSync()
+  useApiMigrate()
   const view = useAppStore((s) => s.view)
 
   return (
