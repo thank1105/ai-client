@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+﻿import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 export type MessageRole = 'user' | 'assistant' | 'system'
@@ -8,7 +8,8 @@ export interface Message {
   role: MessageRole
   content: string
   createdAt: number
-  // 后续：附件、tool calls 等
+  // 流式输出时为 true
+  pending?: boolean
 }
 
 export interface Conversation {
@@ -23,11 +24,19 @@ export interface Conversation {
 
 interface ConversationState {
   conversations: Conversation[]
+  activeId: string | null
+  // CRUD
   createConversation: (kind: 'chat' | 'image', title?: string) => string
   deleteConversation: (id: string) => void
   renameConversation: (id: string, title: string) => void
   togglePin: (id: string) => void
   clearAll: (kind: 'chat' | 'image') => void
+  // active
+  setActive: (id: string | null) => void
+  // messages
+  appendMessage: (convId: string, msg: Omit<Message, 'id' | 'createdAt'>) => string
+  updateMessage: (convId: string, msgId: string, patch: Partial<Message>) => void
+  deleteMessage: (convId: string, msgId: string) => void
 }
 
 const generateId = () =>
@@ -37,24 +46,31 @@ export const useConversationStore = create<ConversationState>()(
   persist(
     (set, get) => ({
       conversations: [],
+      activeId: null,
 
       createConversation: (kind, title) => {
         const id = generateId()
         const now = Date.now()
         const conv: Conversation = {
           id,
-          title: title ?? '新对话',
+          title: title ?? (kind === 'image' ? '新建绘画' : '新对话'),
           kind,
           messages: [],
           createdAt: now,
           updatedAt: now,
         }
-        set({ conversations: [conv, ...get().conversations] })
+        set({
+          conversations: [conv, ...get().conversations],
+          activeId: id,
+        })
         return id
       },
 
-      deleteConversation: (id) =>
-        set({ conversations: get().conversations.filter((c) => c.id !== id) }),
+      deleteConversation: (id) => {
+        const remaining = get().conversations.filter((c) => c.id !== id)
+        const newActive = get().activeId === id ? null : get().activeId
+        set({ conversations: remaining, activeId: newActive })
+      },
 
       renameConversation: (id, title) =>
         set({
@@ -71,7 +87,52 @@ export const useConversationStore = create<ConversationState>()(
         }),
 
       clearAll: (kind) =>
-        set({ conversations: get().conversations.filter((c) => c.kind !== kind) }),
+        set({
+          conversations: get().conversations.filter((c) => c.kind !== kind),
+          activeId: null,
+        }),
+
+      setActive: (id) => set({ activeId: id }),
+
+      appendMessage: (convId, msg) => {
+        const message: Message = {
+          id: generateId(),
+          createdAt: Date.now(),
+          ...msg,
+        }
+        set({
+          conversations: get().conversations.map((c) =>
+            c.id === convId
+              ? { ...c, messages: [...c.messages, message], updatedAt: Date.now() }
+              : c,
+          ),
+        })
+        return message.id
+      },
+
+      updateMessage: (convId, msgId, patch) =>
+        set({
+          conversations: get().conversations.map((c) =>
+            c.id === convId
+              ? {
+                  ...c,
+                  messages: c.messages.map((m) =>
+                    m.id === msgId ? { ...m, ...patch } : m,
+                  ),
+                  updatedAt: Date.now(),
+                }
+              : c,
+          ),
+        }),
+
+      deleteMessage: (convId, msgId) =>
+        set({
+          conversations: get().conversations.map((c) =>
+            c.id === convId
+              ? { ...c, messages: c.messages.filter((m) => m.id !== msgId) }
+              : c,
+          ),
+        }),
     }),
     { name: 'ai-client-conversations' },
   ),
