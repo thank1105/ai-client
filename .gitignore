@@ -18,6 +18,9 @@ out/
 .idea/
 *.swp
 *.swo
+*.orig
+*.rej
+*~
 
 # OS
 .DS_Store
