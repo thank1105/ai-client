@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useAppStore } from '@/stores/app-store'
 
 /** 启动时迁移：

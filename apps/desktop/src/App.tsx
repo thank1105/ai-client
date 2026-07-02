@@ -1,4 +1,4 @@
-﻿import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { AppLayout } from '@/components/layout/app-layout'
 import { ChatView } from '@/features/chat/chat-view'
 import { ImageView } from '@/features/image/image-view'

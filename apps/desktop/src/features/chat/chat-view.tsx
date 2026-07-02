@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowUp, Paperclip, Mic, User, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'

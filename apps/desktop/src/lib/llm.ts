@@ -1,4 +1,4 @@
-﻿﻿﻿import type { Message } from '@/stores/conversation-store'
+import type { Message } from '@/stores/conversation-store'
 
 /** 是否在 Tauri 环境中 */
 export const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
@@ -128,11 +128,27 @@ async function streamChatViaTauri(
   cb: StreamCallbacks,
   _signal?: AbortSignal,
 ): Promise<void> {
+  // Lazy-load Tauri APIs; keep Tauri-specific code out of the Web bundle.
+  const { invoke, Channel } = await import('@tauri-apps/api/core');
+  const { onChunk } = createSSEParser(cb);
+
+  const channel = new Channel<{ type: 'chunk' | 'done' | 'error'; data?: string; message?: string }>();
+  channel.onmessage = (msg) => {
+    if (msg.type === 'chunk' && msg.data) {
+      onChunk(msg.data);
+    } else if (msg.type === 'done') {
+      onChunk('');
+      cb.onDone();
+    } else if (msg.type === 'error') {
+      cb.onError(new Error(msg.message ?? 'stream error'));
+    }
+  };
+
+const trimmedBase = config.baseURL.replace(/\/+$/, '');
+  const path = trimmedBase.endsWith('/v1') ? '/messages' : '/v1/messages';
+
   try {
-    const { invoke } = await import('@tauri-apps/api/core')
-    const trimmedBase = config.baseURL.replace(/\/+$/, '')
-    const path = trimmedBase.endsWith('/v1') ? '/messages' : '/v1/messages'
-    const resp = (await invoke('llm_proxy', {
+    await invoke('llm_proxy', {
       req: {
         base_url: trimmedBase,
         path,
@@ -142,14 +158,36 @@ async function streamChatViaTauri(
           'anthropic-version': '2023-06-01',
         },
       },
-    })) as string
-    // Rust 端当前是同步返回（不是流式），一次性输出
-    cb.onDelta(resp)
-    cb.onDone()
+      channel,
+    });
   } catch (e) {
-    if ((e as Error)?.name === 'AbortError') cb.onDone()
-    else cb.onError(e instanceof Error ? e : new Error(String(e)))
+    if ((e as Error)?.name === 'AbortError') cb.onDone();
+    else cb.onError(e instanceof Error ? e : new Error(String(e)));
   }
+}
+
+// Shared incremental SSE parser used by both Web and Tauri paths.
+// Returns a function that accepts raw byte chunks (UTF-8 string) and
+// emits onDelta/onError via the provided callbacks.
+function createSSEParser(cb: StreamCallbacks): { onChunk: (data: string) => void } {
+  let buffer = '';
+  return {
+    onChunk(data: string) {
+      if (data) buffer += data;
+      let sepIdx: number;
+      while ((sepIdx = buffer.indexOf('\n\n')) >= 0) {
+        const eventBlock = buffer.slice(0, sepIdx);
+        buffer = buffer.slice(sepIdx + 2);
+        const evt = parseSSEBlock(eventBlock);
+        if (!evt) continue;
+        if (evt.type === 'content_block_delta') {
+          cb.onDelta(evt.delta.text);
+        } else if (evt.type === 'error') {
+          cb.onError(new Error(`${evt.error.type}: ${evt.error.message}`));
+        }
+      }
+    },
+  };
 }
 
 /** Web 环境：fetch + SSE 解析 */
@@ -174,7 +212,6 @@ async function streamChatViaWeb(
       signal,
     })
   } catch (e) {
-    // 详细诊断：把网络/CORS 错误的更多上下文暴露出来
     const err = e instanceof Error ? e : new Error(String(e))
     const extra =
       '\n\n**诊断信息**：\n' +
@@ -190,47 +227,27 @@ async function streamChatViaWeb(
   }
 
   if (!response.ok || !response.body) {
-    // 尝试读出错误信息
     const text = await response.text().catch(() => '')
     cb.onError(
-      new Error(
-        `HTTP ${response.status}: ${text.slice(0, 300) || response.statusText}`,
-      ),
+      new Error(`HTTP ${response.status}: ${text.slice(0, 300) || response.statusText}`),
     )
     return
   }
 
-  // 解析 SSE 流
   const reader = response.body.getReader()
   const decoder = new TextDecoder('utf-8')
-  let buffer = ''
-
+  const { onChunk } = createSSEParser(cb)
   try {
     while (true) {
       const { value, done } = await reader.read()
       if (done) break
-      buffer += decoder.decode(value, { stream: true })
-
-      // SSE 事件以 \n\n 分隔
-      let sepIdx: number
-      while ((sepIdx = buffer.indexOf('\n\n')) >= 0) {
-        const eventBlock = buffer.slice(0, sepIdx)
-        buffer = buffer.slice(sepIdx + 2)
-        const evt = parseSSEBlock(eventBlock)
-        if (!evt) continue
-
-        if (evt.type === 'content_block_delta') {
-          cb.onDelta(evt.delta.text)
-        } else if (evt.type === 'error') {
-          cb.onError(new Error(`${evt.error.type}: ${evt.error.message}`))
-          return
-        }
-      }
+      onChunk(decoder.decode(value, { stream: true }))
     }
+    onChunk('')
     cb.onDone()
   } catch (e) {
     if ((e as Error).name === 'AbortError') {
-      cb.onDone() // 用户主动中止，视为正常结束
+      cb.onDone()
     } else {
       cb.onError(e instanceof Error ? e : new Error(String(e)))
     }

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { KeyRound, Palette, Database, Info, Eye, EyeOff, Check } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'

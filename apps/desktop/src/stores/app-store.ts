@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿import { create } from 'zustand'
+import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 export type Theme = 'default' | 'sakura' | 'mint' | 'sunset'
@@ -53,13 +53,6 @@ export const useAppStore = create<AppState>()(
         apiKey: '',
         baseURL: 'https://api.minimaxi.com/anthropic',
         model: 'MiniMax-M3',
-      },
-      // 启动时迁移：如果旧 localStorage 存的是 https://...完整 URL，改为 /llm 走代理
-      _migrateBaseURL: () => {
-        const cur = get().apiConfig.baseURL
-        if (cur.startsWith('https://') || cur.startsWith('http://')) {
-          set({ apiConfig: { ...get().apiConfig, baseURL: '/llm' } })
-        }
       },
       setApiConfig: (patch) =>
         set((st) => ({ apiConfig: { ...st.apiConfig, ...patch } })),
