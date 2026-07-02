@@ -1,8 +1,0 @@
-$ tauri dev
-     Running BeforeDevCommand (`pnpm dev`)
-$ vite
-     Running DevCommand (`cargo  run --no-default-features --color always --`)
-        Info Watching E:\ClaudeCode\AI-Client\apps\desktop\src-tauri for changes...
-[1m[92m   Compiling[0m ai-client v0.1.0 (E:\ClaudeCode\AI-Client\apps\desktop\src-tauri)
-[1m[96m    Building[0m [=======================> ] 414/416: ai-clie…[1m[96m    Building[0m [=======================> ] 415/416: ai-clie…                                                            [1m[92m    Finished[0m `dev` profile [unoptimized + debuginfo] target(s) in 33.40s
-[1m[92m     Running[0m `target\debug\ai-client.exe`

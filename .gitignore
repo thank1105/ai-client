@@ -45,3 +45,8 @@ src-tauri/gen/
 .cache/
 .turbo/
 .vite/
+
+# JetBrains / IntelliJ 运行配置目录 — 整体忽略。
+# 如果团队需要共享某些 *.xml 运行配置，单独加 .gitignore 覆盖
+# 这里的 "!" 例外，或把目录换成 .run/*.xml 显式跟踪。
+**/.run/
